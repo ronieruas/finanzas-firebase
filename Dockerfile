@@ -1,25 +1,25 @@
-# 1. Usa a imagem oficial do Node.js na versão 20-alpine como base.
-# Alpine é uma imagem leve, ideal para produção.
-FROM node:20-alpine AS base
+# 1. Use a more robust base image than Alpine to avoid potential compatibility issues.
+# 'slim' is a good balance between size and compatibility.
+FROM node:20-slim
 
-# 2. Define o diretório de trabalho dentro do container como /app.
+# 2. Set the working directory inside the container.
 WORKDIR /app
 
-# 3. Copia TODO o conteúdo do projeto para o diretório de trabalho no container.
-# O .dockerignore garantirá que node_modules e outros arquivos desnecessários não sejam copiados.
+# 3. Copy all files from the build context to the current working directory.
+# This is the most straightforward way to ensure all necessary files are present.
 COPY . .
 
-# 4. (DEBUG) Lista os arquivos no diretório para confirmar que package.json foi copiado.
+# 4. (DEBUG STEP) List the files to confirm `package.json` was copied.
 RUN ls -la
 
-# 5. Instala as dependências do projeto.
+# 5. Install the project dependencies.
 RUN npm install
 
-# 6. Constrói a aplicação Next.js para produção.
+# 6. Build the Next.js application for production.
 RUN npm run build
 
-# 7. Expõe a porta 3000, que é a porta padrão do Next.js.
+# 7. Expose the port that the Next.js app will run on.
 EXPOSE 3000
 
-# 8. Define o comando para iniciar a aplicação quando o container for executado.
+# 8. Define the command to start the application when the container runs.
 CMD ["npm", "start"]
