@@ -1,28 +1,25 @@
-# Dockerfile de Estágio Único - Mais simples e robusto
+# 1. Usa a imagem oficial do Node.js na versão 20-alpine como base.
+# Alpine é uma imagem leve, ideal para produção.
+FROM node:20-alpine AS base
 
-# 1. Usa uma imagem base do Node.js com Alpine Linux, que é leve.
-FROM node:20-alpine
-
-# 2. Define o diretório de trabalho dentro do container.
+# 2. Define o diretório de trabalho dentro do container como /app.
 WORKDIR /app
 
-# 3. Copia os arquivos de manifesto de pacotes. O wildcard (*) garante que ambos
-# package.json e package-lock.json (se existir) sejam copiados.
-COPY package*.json ./
-
-# 4. Instala as dependências do projeto.
-# Usamos `npm install` que é mais flexível que `npm ci` se o lockfile não existir.
-RUN npm install
-
-# 5. Copia todo o restante do código da aplicação para o diretório de trabalho.
-# O .dockerignore irá excluir arquivos desnecessários como node_modules.
+# 3. Copia TODO o conteúdo do projeto para o diretório de trabalho no container.
+# O .dockerignore garantirá que node_modules e outros arquivos desnecessários não sejam copiados.
 COPY . .
 
-# 6. Executa o script de build do Next.js para compilar a aplicação para produção.
+# 4. (DEBUG) Lista os arquivos no diretório para confirmar que package.json foi copiado.
+RUN ls -la
+
+# 5. Instala as dependências do projeto.
+RUN npm install
+
+# 6. Constrói a aplicação Next.js para produção.
 RUN npm run build
 
 # 7. Expõe a porta 3000, que é a porta padrão do Next.js.
 EXPOSE 3000
 
-# 8. Define o comando padrão para iniciar o servidor Next.js em modo de produção.
+# 8. Define o comando para iniciar a aplicação quando o container for executado.
 CMD ["npm", "start"]
