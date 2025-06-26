@@ -1,52 +1,28 @@
-# 1. Installer Stage (deps)
-# Get dependencies and cache them
-FROM node:20-alpine AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Dockerfile de Estágio Único - Mais simples e robusto
 
+# 1. Usa uma imagem base do Node.js com Alpine Linux, que é leve.
+FROM node:20-alpine
+
+# 2. Define o diretório de trabalho dentro do container.
 WORKDIR /app
-# Copy package.json and install dependencies
-COPY package.json ./
+
+# 3. Copia os arquivos de manifesto de pacotes. O wildcard (*) garante que ambos
+# package.json e package-lock.json (se existir) sejam copiados.
+COPY package*.json ./
+
+# 4. Instala as dependências do projeto.
+# Usamos `npm install` que é mais flexível que `npm ci` se o lockfile não existir.
 RUN npm install
 
-# 2. Builder Stage
-# Build the application
-FROM node:20-alpine AS builder
-WORKDIR /app
-# Copy dependencies from the 'deps' stage
-COPY --from=deps /app/node_modules ./node_modules
-# Copy the rest of the source code
+# 5. Copia todo o restante do código da aplicação para o diretório de trabalho.
+# O .dockerignore irá excluir arquivos desnecessários como node_modules.
 COPY . .
 
-# Build the Next.js application
-# This will leverage the standalone output mode
+# 6. Executa o script de build do Next.js para compilar a aplicação para produção.
 RUN npm run build
 
-# 3. Runner Stage
-# Create the final, small production image
-FROM node:20-alpine AS runner
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the built application from the 'builder' stage
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Set the new user
-USER nextjs
-
+# 7. Expõe a porta 3000, que é a porta padrão do Next.js.
 EXPOSE 3000
 
-ENV PORT=3000
-# The server is listening on all interfaces, which is required for Docker
-ENV HOSTNAME=0.0.0.0
-
-# Start the application
-# The standalone output creates a server.js file
-CMD ["node", "server.js"]
+# 8. Define o comando padrão para iniciar o servidor Next.js em modo de produção.
+CMD ["npm", "start"]
