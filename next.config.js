@@ -17,9 +17,6 @@ const nextConfig = {
       },
     ],
   },
-  // Habilita a saída 'standalone' para otimização de imagem Docker.
-  // Isso cria uma pasta .next/standalone com apenas os arquivos necessários.
-  output: 'standalone',
 };
 
 module.exports = nextConfig;
