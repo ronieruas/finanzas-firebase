@@ -8,7 +8,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copia os arquivos de gerenciamento de pacotes para o diretório de trabalho.
-COPY package.json package-lock.json* ./
+COPY package.json ./
+COPY package-lock.json ./
 
 # Instala as dependências. Usamos 'npm ci' que é mais rápido e seguro para builds.
 RUN npm ci
@@ -37,7 +38,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Cria um grupo e um usuário com menos privilégios para rodar a aplicação (boa prática de segurança).
 RUN addgroup --system --gid 1001 nodejs
@@ -55,7 +56,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 EXPOSE 3000
 
 # Define a variável de ambiente para a porta.
-ENV PORT 3000
+ENV PORT=3000
 
 # Comando para iniciar o servidor Next.js.
 CMD ["node", "server.js"]
